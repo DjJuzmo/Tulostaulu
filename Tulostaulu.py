@@ -26,7 +26,7 @@ class AsyncDownload(Thread):
         self.queue = q
         self.events = []
         self.url = url
-        self.first_request = True
+        self.first_request = False
         self.event_idx = 0
 
     def run(self):
@@ -44,7 +44,7 @@ class AsyncDownload(Thread):
                         self.first_request = False
                     if len_filtered_events > self.event_idx:
                         for e in self.filtered_events[self.event_idx:]:
-                            self.queue.put(self.parse_event(e)) # Output events to queue
+                            self.queue.put(self.__parse_event(e)) # Output events to queue
                         self.event_idx = len_filtered_events
             except Exception as e:
                 print(e)
@@ -57,9 +57,9 @@ class AsyncDownload(Thread):
         x['type'] == 'timeoutEvent']
         return output_events_json
 
-    def parse_event(self, event):
+    def __parse_event(self, event):
         if event['type'] == 'goal':
-            return self.parse_scorer(event)
+            return self.__parse_scorer(event)
         elif event['type'] == 'penalty':
             return self.parse_penalty(event)
         elif event['type'] == 'timeoutEvent':
@@ -67,7 +67,7 @@ class AsyncDownload(Thread):
         else:
             return '???'
 
-    def parse_scorer(self, goal):
+    def __parse_scorer(self, goal):
         home_team_score     = str(goal['homeTeamScore'])
         away_team_score     = str(goal['awayTeamScore'])
         scoring_team        = str(goal['scoringTeam']['name'])
@@ -275,13 +275,6 @@ class LiveNaytto(tk.Frame):
         self.btn_clear_info         = tk.Button(self.frm_buttons, text="Tyhjennä", command=self.writer_thread.clear_info)
         self.btn_update_settings    = tk.Button(self.frm_buttons, text="Asetukset", command=lambda: self.get_settings('Asetukset.json'))
 
-        # self.frm_label.grid(row=0, column=0, sticky='ew')
-        # self.frm_buttons.grid(row=1, column=0)
-        # self.lbl_scorer.grid(row=0, column=0, sticky='ew')
-        # self.btn_set_info.grid(row=1, column=0, sticky='w')
-        # self.btn_clear_info.grid(row=1, column=1, sticky='w')
-        # self.btn_update_settings.grid(row=1, column=2, sticky='w')
-
         self.lbl_scorer.pack(fill=tk.X)
 
         self.btn_set_info.pack(side='left')
@@ -311,19 +304,24 @@ class MyApp(tk.Frame):
         tk.Frame.__init__(self, master, *args, **kwargs)
         self.master = master
 
-        frm_koti = NumeroNaytto(self, "Koti", width=50, height=130,bd=2, relief='groove')
+        # Read interface folder location
+        with open('Asetukset.json', 'r') as f_config:
+            config_dict = json.load(f_config)    
+            rajapinta_hakemisto = config_dict['Obs_interface_path'] + "\\" 
+
+        frm_koti = NumeroNaytto(self, rajapinta_hakemisto + "Koti", width=50, height=130,bd=2, relief='groove')
         frm_koti.pack_propagate(False)
 
-        frm_era = EraNaytto(self, "Era", width=60, height=130,bd=2, relief='groove')
+        frm_era = EraNaytto(self, rajapinta_hakemisto + "Era", width=60, height=130,bd=2, relief='groove')
         frm_era.pack_propagate(False)
 
-        frm_vieras = NumeroNaytto(self, "Vieras", width=50, height=130,bd=2, relief='groove')
+        frm_vieras = NumeroNaytto(self, rajapinta_hakemisto + "Vieras", width=50, height=130,bd=2, relief='groove')
         frm_vieras.pack_propagate(False)
 
-        frm_kotijoukkue = JoukkueNaytto(self, "Joukkueet.txt", "Kotijoukkue", width=80, height=130,bd=2, relief='groove')
+        frm_kotijoukkue = JoukkueNaytto(self, rajapinta_hakemisto + "Joukkueet.txt", rajapinta_hakemisto + "Kotijoukkue", width=80, height=130,bd=2, relief='groove')
         frm_kotijoukkue.pack_propagate(False)
 
-        frm_vierasjoukkue = JoukkueNaytto(self, "Joukkueet.txt", "Vierasjoukkue", width=80, height=130,bd=2, relief='groove')
+        frm_vierasjoukkue = JoukkueNaytto(self, rajapinta_hakemisto + "Joukkueet.txt", rajapinta_hakemisto + "Vierasjoukkue", width=80, height=130,bd=2, relief='groove')
         frm_vierasjoukkue.pack_propagate(False)
 
         frm_ohjaus = Ohjaus(self, width=120, height=130, bd=2, relief='groove')
@@ -336,6 +334,8 @@ class MyApp(tk.Frame):
         frm_vieras.grid(row=0, column=4)
         frm_vierasjoukkue.grid(row=0, column=5)
         frm_live.grid(row=1, sticky='ew', column=0, columnspan=6)
+
+        
 
 # def tallenna(event=None):
 #     print("Easy!")
