@@ -24,10 +24,7 @@ class AsyncDownload(Thread):
         super().__init__()
         self.master = master
         self.queue = q
-        self.events = []
-        self.url = url
-        self.first_request = False
-        self.event_idx = 0
+        self.update_url(url)
 
     def run(self):
         while True:
@@ -49,6 +46,13 @@ class AsyncDownload(Thread):
             except Exception as e:
                 print(e)
             time.sleep(5)
+
+    def update_url(self, new_url):
+        self.events = []
+        self.url            = new_url
+        self.first_request  = False
+        self.event_idx      = 0
+        
 
     def filter_events(self, events_json):
         output_events_json = [x for x in events_json if 
@@ -94,11 +98,13 @@ class AsyncDownload(Thread):
         timeout_text = " ".join(["Aikalisä", timeout_taking_team])
         return timeout_text
 
+
 class InfoWriter(Thread):
-    def __init__(self, master, q):
+    def __init__(self, master, q, i_face):
         super().__init__()
         self.master = master
         self.queue = q
+        self.interface_folder = i_face
 
     def run(self):
         while True:
@@ -108,16 +114,16 @@ class InfoWriter(Thread):
                 pass
             else:
                 self.master.lbl_scorer.configure(text=info_text)
-                self.write_info()
+                self.write_info(self.interface_folder)
                 time.sleep(INFO_TEXT_DURATION)
-                self.clear_info()
+                self.clear_info(self.interface_folder)
 
-    def write_info(self):
-        with open('Infoteksti.txt', encoding='utf-8', mode='w') as file:
+    def write_info(self, i_face_folder):
+        with open(i_face_folder + 'Infoteksti.txt', encoding='utf-8', mode='w') as file:
             file.write(str(self.master.lbl_scorer.cget("text")))
 
-    def clear_info(self):
-        with open('Infoteksti.txt', encoding='utf-8', mode='w') as file:
+    def clear_info(self, i_face_folder):
+        with open(i_face_folder + 'Infoteksti.txt', encoding='utf-8', mode='w') as file:
             file.write("")
 
 
@@ -262,7 +268,7 @@ class LiveNaytto(tk.Frame):
         self.get_settings('Asetukset.json')
         self.info_queue = queue.Queue(10)
 
-        self.writer_thread = InfoWriter(self, self.info_queue)
+        self.writer_thread = InfoWriter(self, self.info_queue, self.rajapinta_hakemisto)
         self.writer_thread.daemon = TRUE
 
         self.event_thread = AsyncDownload(self, self.endpoint, self.info_queue)
@@ -273,7 +279,7 @@ class LiveNaytto(tk.Frame):
         self.lbl_scorer             = tk.Label(self.frm_label , text="", anchor=tk.W)
         self.btn_set_info           = tk.Button(self.frm_buttons, text="Kirjoita", command=self.writer_thread.write_info)
         self.btn_clear_info         = tk.Button(self.frm_buttons, text="Tyhjennä", command=self.writer_thread.clear_info)
-        self.btn_update_settings    = tk.Button(self.frm_buttons, text="Asetukset", command=lambda: self.get_settings('Asetukset.json'))
+        self.btn_update_settings    = tk.Button(self.frm_buttons, text="Päivitä", command=lambda: self.update_game_id())
 
         self.lbl_scorer.pack(fill=tk.X)
 
@@ -291,12 +297,20 @@ class LiveNaytto(tk.Frame):
         with open(file_name) as json_file:
             setup = json.load(json_file)
 
-            url         = setup['Url']
-            apiPath     = setup['Apipath']
-            ottelu_ID   = setup['GameId']
-        
+        url         = setup['Url']
+        apiPath     = setup['Apipath']
+        ottelu_ID   = setup['GameId']
+
         self.endpoint = url + '/' + apiPath + '/' + ottelu_ID
         self.payload = {'grouped': '1'}
+        self.rajapinta_hakemisto = setup['Obs_interface_path'] + "\\" 
+        
+
+    def update_game_id(self):
+        self.get_settings('Asetukset.json')
+        self.event_thread.update_url(self.endpoint)
+        with self.info_queue.mutex:
+            self.info_queue.queue.clear()
 
 
 class MyApp(tk.Frame):
