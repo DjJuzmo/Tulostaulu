@@ -50,7 +50,7 @@ class AsyncDownload(Thread):
     def update_url(self, new_url):
         self.events = []
         self.url            = new_url
-        self.first_request  = False
+        self.first_request  = True
         self.event_idx      = 0
         
 
@@ -277,8 +277,8 @@ class LiveNaytto(tk.Frame):
         self.frm_label              = tk.LabelFrame(self)
         self.frm_buttons            = tk.Frame(self)
         self.lbl_scorer             = tk.Label(self.frm_label , text="", anchor=tk.W)
-        self.btn_set_info           = tk.Button(self.frm_buttons, text="Kirjoita", command=self.writer_thread.write_info)
-        self.btn_clear_info         = tk.Button(self.frm_buttons, text="Tyhjennä", command=self.writer_thread.clear_info)
+        self.btn_set_info           = tk.Button(self.frm_buttons, text="Kirjoita", command=lambda: self.writer_thread.write_info(self.rajapinta_hakemisto ))
+        self.btn_clear_info         = tk.Button(self.frm_buttons, text="Tyhjennä", command=self.writer_thread.clear_info(self.rajapinta_hakemisto ))
         self.btn_update_settings    = tk.Button(self.frm_buttons, text="Päivitä", command=lambda: self.update_game_id())
 
         self.lbl_scorer.pack(fill=tk.X)
@@ -360,5 +360,6 @@ class MyApp(tk.Frame):
 
 if __name__ == "__main__":
     root = tk.Tk()
+    root.title('Jee')
     MyApp(root).pack(side="top", fill="both", expand=True)
     root.mainloop()
