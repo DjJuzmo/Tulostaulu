@@ -338,10 +338,10 @@ class MyApp(tk.Frame):
         frm_vieras = NumeroNaytto(self, rajapinta_hakemisto + "Vieras", width=50, height=130,bd=2, relief='groove')
         frm_vieras.pack_propagate(False)
 
-        frm_kotijoukkue = JoukkueNaytto(self, rajapinta_hakemisto + "Joukkueet.txt", rajapinta_hakemisto + "Kotijoukkue", width=80, height=130,bd=2, relief='groove')
+        frm_kotijoukkue = JoukkueNaytto(self, "Joukkueet.txt", rajapinta_hakemisto + "Kotijoukkue", width=80, height=130,bd=2, relief='groove')
         frm_kotijoukkue.pack_propagate(False)
 
-        frm_vierasjoukkue = JoukkueNaytto(self, rajapinta_hakemisto + "Joukkueet.txt", rajapinta_hakemisto + "Vierasjoukkue", width=80, height=130,bd=2, relief='groove')
+        frm_vierasjoukkue = JoukkueNaytto(self, "Joukkueet.txt", rajapinta_hakemisto + "Vierasjoukkue", width=80, height=130,bd=2, relief='groove')
         frm_vierasjoukkue.pack_propagate(False)
 
         frm_ohjaus = Ohjaus(self, width=120, height=130, bd=2, relief='groove')
