@@ -264,7 +264,7 @@ class Ohjaus(tk.Frame):
 class LiveNaytto(tk.Frame):
     def __init__(self, master, *args, **kwargs):
         tk.Frame.__init__(self, master, *args, **kwargs)
-
+        self.master = master
         self.get_settings('Asetukset.json')
         self.info_queue = queue.Queue(10)
 
@@ -278,7 +278,7 @@ class LiveNaytto(tk.Frame):
         self.frm_buttons            = tk.Frame(self)
         self.lbl_scorer             = tk.Label(self.frm_label , text="", anchor=tk.W)
         self.btn_set_info           = tk.Button(self.frm_buttons, text="Kirjoita", command=lambda: self.writer_thread.write_info(self.rajapinta_hakemisto ))
-        self.btn_clear_info         = tk.Button(self.frm_buttons, text="Tyhjennä", command=self.writer_thread.clear_info(self.rajapinta_hakemisto ))
+        self.btn_clear_info         = tk.Button(self.frm_buttons, text="Tyhjennä", command=lambda: self.writer_thread.clear_info(self.rajapinta_hakemisto ))
         self.btn_update_settings    = tk.Button(self.frm_buttons, text="Päivitä", command=lambda: self.update_game_id())
 
         self.lbl_scorer.pack(fill=tk.X)
@@ -303,12 +303,14 @@ class LiveNaytto(tk.Frame):
 
         self.endpoint = url + '/' + apiPath + '/' + ottelu_ID
         self.payload = {'grouped': '1'}
-        self.rajapinta_hakemisto = setup['Obs_interface_path'] + "\\" 
+        self.rajapinta_hakemisto = setup['Obs_interface_path'] + "\\"
+        return setup
         
 
     def update_game_id(self):
-        self.get_settings('Asetukset.json')
+        config = self.get_settings('Asetukset.json')
         self.event_thread.update_url(self.endpoint)
+        self.master.update_master_title(config['GameId'])
         with self.info_queue.mutex:
             self.info_queue.queue.clear()
 
@@ -322,6 +324,10 @@ class MyApp(tk.Frame):
         with open('Asetukset.json', 'r') as f_config:
             config_dict = json.load(f_config)    
             rajapinta_hakemisto = config_dict['Obs_interface_path'] + "\\" 
+            ottelu_id = config_dict['GameId']
+        
+        # Set master title
+        self.update_master_title(ottelu_id)
 
         frm_koti = NumeroNaytto(self, rajapinta_hakemisto + "Koti", width=50, height=130,bd=2, relief='groove')
         frm_koti.pack_propagate(False)
@@ -349,6 +355,17 @@ class MyApp(tk.Frame):
         frm_vierasjoukkue.grid(row=0, column=5)
         frm_live.grid(row=1, sticky='ew', column=0, columnspan=6)
 
+    def update_master_title(self, game_id):
+        url = r"https://api.salibandy.fi/games?gameId=" + game_id
+        response = requests.get(url, timeout=10)
+
+        if response.status_code == requests.codes.ok:
+            game_data = response.json()
+            home_team = game_data[0]['homeTeam']['name']
+            away_team = game_data[0]['awayTeam']['name']
+            title = home_team + " vs " + away_team
+            self.master.title(title) 
+            pass
         
 
 # def tallenna(event=None):
