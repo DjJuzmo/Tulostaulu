@@ -114,16 +114,16 @@ class InfoWriter(Thread):
                 pass
             else:
                 self.master.lbl_scorer.configure(text=info_text)
-                self.write_info(self.interface_folder)
+                self.write_info()
                 time.sleep(INFO_TEXT_DURATION)
-                self.clear_info(self.interface_folder)
+                self.clear_info()
 
-    def write_info(self, i_face_folder):
-        with open(i_face_folder + 'Infoteksti.txt', encoding='utf-8', mode='w') as file:
+    def write_info(self):
+        with open('Infoteksti.txt', encoding='utf-8', mode='w') as file:
             file.write(str(self.master.lbl_scorer.cget("text")))
 
-    def clear_info(self, i_face_folder):
-        with open(i_face_folder + 'Infoteksti.txt', encoding='utf-8', mode='w') as file:
+    def clear_info(self):
+        with open('Infoteksti.txt', encoding='utf-8', mode='w') as file:
             file.write("")
 
 
@@ -277,8 +277,8 @@ class LiveNaytto(tk.Frame):
         self.frm_label              = tk.LabelFrame(self)
         self.frm_buttons            = tk.Frame(self)
         self.lbl_scorer             = tk.Label(self.frm_label , text="", anchor=tk.W)
-        self.btn_set_info           = tk.Button(self.frm_buttons, text="Kirjoita", command=lambda: self.writer_thread.write_info(self.rajapinta_hakemisto ))
-        self.btn_clear_info         = tk.Button(self.frm_buttons, text="Tyhjennä", command=lambda: self.writer_thread.clear_info(self.rajapinta_hakemisto ))
+        self.btn_set_info           = tk.Button(self.frm_buttons, text="Kirjoita", command=lambda: self.writer_thread.write_info())
+        self.btn_clear_info         = tk.Button(self.frm_buttons, text="Tyhjennä", command=lambda: self.writer_thread.clear_info())
         self.btn_update_settings    = tk.Button(self.frm_buttons, text="Päivitä", command=lambda: self.update_game_id())
 
         self.lbl_scorer.pack(fill=tk.X)

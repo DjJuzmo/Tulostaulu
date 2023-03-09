@@ -15,7 +15,7 @@ YPA Keltainen
 AC Nokia
 ErVi
 SC Weikot
-FBC Remix
+FBC
 SB Pro
 LeKi Sininen
 RoPo
