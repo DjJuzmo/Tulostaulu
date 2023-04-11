@@ -39,3 +39,5 @@ Pirkat E
 O2
 Vapsi
 ÅIF
+SALBA/LAJY
+NYSTARS
