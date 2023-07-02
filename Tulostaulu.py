@@ -105,6 +105,7 @@ class InfoWriter(Thread):
         self.master = master
         self.queue = q
         self.interface_folder = i_face
+        self.should_clear_queue = False
 
     def run(self):
         while True:
@@ -117,6 +118,12 @@ class InfoWriter(Thread):
                 self.write_info()
                 time.sleep(INFO_TEXT_DURATION)
                 self.clear_info()
+
+            if self.should_clear_queue:
+                with self.queue.mutex:
+                    self.queue.queue.clear()
+                    print("Pino tyhjennetty")
+                    self.should_clear_queue = False
 
     def write_info(self):
         with open('Infoteksti.txt', encoding='utf-8', mode='w') as file:
@@ -311,8 +318,7 @@ class LiveNaytto(tk.Frame):
         config = self.get_settings('Asetukset.json')
         self.event_thread.update_url(self.endpoint)
         self.master.update_master_title(config['GameId'])
-        with self.info_queue.mutex:
-            self.info_queue.queue.clear()
+        self.writer_thread.should_clear_queue = True
 
 
 class MyApp(tk.Frame):
