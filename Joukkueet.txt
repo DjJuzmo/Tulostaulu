@@ -43,3 +43,4 @@ SALBA/LAJY
 NYSTARS
 SB Naantali
 SBS Wirmo/TPS
+Pelicans
