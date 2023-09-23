@@ -44,7 +44,7 @@ class AsyncDownload(Thread):
                             self.queue.put(self.__parse_event(e)) # Output events to queue
                         self.event_idx = len_filtered_events
             except Exception as e:
-                print(e)
+                print("request exeption " + str(e))
             time.sleep(5)
 
     def update_url(self, new_url):
@@ -55,34 +55,29 @@ class AsyncDownload(Thread):
         
 
     def filter_events(self, events_json):
-        output_events_json = [x for x in events_json if 
-        x['type'] == 'goal' or 
-        x['type'] == 'penalty' or 
-        x['type'] == 'timeoutEvent']
-        return output_events_json
+        events_json['match']['goals']
+        return events_json['match']['goals']
 
     def __parse_event(self, event):
-        if event['type'] == 'goal':
-            return self.__parse_scorer(event)
-        elif event['type'] == 'penalty':
-            return self.parse_penalty(event)
-        elif event['type'] == 'timeoutEvent':
-            return self.parse_timeout(event)
-        else:
-            return '???'
+        # if event['type'] == 'goal':     # Maalit valitaan aina
+        #     return self.__parse_scorer(event)
+        # elif event['type'] == 'penalty':
+        #     return self.parse_penalty(event)
+        # elif event['type'] == 'timeoutEvent':
+        #     return self.parse_timeout(event)
+        # else:
+        #     return '???'
+        parsed_event = self.__parse_scorer(event)
+        return parsed_event
 
     def __parse_scorer(self, goal):
-        home_team_score     = str(goal['homeTeamScore'])
-        away_team_score     = str(goal['awayTeamScore'])
-        scoring_team        = str(goal['scoringTeam']['name'])
-        if goal['ownGoal']: # jos oma maali
-            scorer_number       = ""
-            scorer_firstName    = "Oma"
-            scorer_lastName     = "maali"
-        else:
-            scorer_number       = "#" + str(goal['scorerLineup']['number'])
-            scorer_firstName    = str(goal['scorer']['firstName'])
-            scorer_lastName     = str(goal['scorer']['lastName'])
+        home_team_score     = str(goal['score_A'])
+        away_team_score     = str(goal['score_B'])
+        scoring_team        = str("")
+
+        scorer_number       = "#" + str(goal['player_shirt_number'])
+        scorer_firstName    = str(goal['player_name'])
+        scorer_lastName     = str("")
 
         scorer_text = " ".join([scoring_team, home_team_score, "-", away_team_score, scorer_number, scorer_firstName, scorer_lastName])
         return scorer_text
@@ -304,12 +299,16 @@ class LiveNaytto(tk.Frame):
         with open(file_name) as json_file:
             setup = json.load(json_file)
 
-        url         = setup['Url']
-        apiPath     = setup['Apipath']
-        ottelu_ID   = setup['GameId']
+        # Endpoint
+        protocoll =     setup['protocoll']
+        domain =        setup['domain']
+        path =          setup['path']
 
-        self.endpoint = url + '/' + apiPath + '/' + ottelu_ID
-        self.payload = {'grouped': '1'}
+        # Query Parameters
+        api_key =   setup['api_key']
+        match_id =  setup['match_id']
+
+        self.endpoint = protocoll + domain + path + "&api_key=" + api_key + "&match_id=" + match_id
         self.rajapinta_hakemisto = setup['Obs_interface_path'] + "\\"
         return setup
         
@@ -317,7 +316,7 @@ class LiveNaytto(tk.Frame):
     def update_game_id(self):
         config = self.get_settings('Asetukset.json')
         self.event_thread.update_url(self.endpoint)
-        self.master.update_master_title(config['GameId'])
+        self.master.update_master_title(config['api_key'], config['match_id'])
         self.writer_thread.should_clear_queue = True
 
 
@@ -330,10 +329,11 @@ class MyApp(tk.Frame):
         with open('Asetukset.json', 'r') as f_config:
             config_dict = json.load(f_config)    
             rajapinta_hakemisto = config_dict['Obs_interface_path'] + "\\" 
-            ottelu_id = config_dict['GameId']
+            ottelu_id = config_dict['match_id']
+            api_key = config_dict['api_key']
         
         # Set master title
-        self.update_master_title(ottelu_id)
+        self.update_master_title(api_key, ottelu_id)
 
         frm_koti = NumeroNaytto(self, rajapinta_hakemisto + "Koti", width=50, height=130,bd=2, relief='groove')
         frm_koti.pack_propagate(False)
@@ -361,18 +361,21 @@ class MyApp(tk.Frame):
         frm_vierasjoukkue.grid(row=0, column=5)
         frm_live.grid(row=1, sticky='ew', column=0, columnspan=6)
 
-    def update_master_title(self, game_id):
-        url = r"https://api.salibandy.fi/games?gameId=" + game_id
+    def update_master_title(self, api_key, match_id):
+        url = r"https://salibandy.api.torneopal.com/taso/rest/getMatch&api_key=" + api_key + "&match_id=" + match_id
         response = requests.get(url, timeout=10)
 
         if response.status_code == requests.codes.ok:
             game_data = response.json()
-            home_team = game_data[0]['homeTeam']['name']
-            away_team = game_data[0]['awayTeam']['name']
-            title = home_team + " vs " + away_team
-            self.master.title(title) 
-            pass
-        
+            try:
+                home_team = game_data['match']['team_A_name']
+                away_team = game_data['match']['team_B_name']
+                title = home_team + " vs " + away_team
+            except Exception as e:
+                title = "???"
+        else:
+            title = "???"
+        self.master.title(title) 
 
 # def tallenna(event=None):
 #     print("Easy!")
