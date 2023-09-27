@@ -1,0 +1,15 @@
+{
+    "Obs_interface_path": "C:\\Users\\Jussi\\Documents\\Obs\\Tulostaulu",
+    "Url": "https://api.salibandy.fi",
+    "Apipath": "events",
+    "Pvm": "2021-10-28",
+    "GroupId": "9224",
+    "GameId": "292026",
+
+    "protocoll":    "https://",
+    "domain":       "salibandy.api.torneopal.com",
+    "path":         "/taso/rest/getMatch",
+
+    "api_key":      "rndds38fjf",
+    "match_id":     "731044"
+}
