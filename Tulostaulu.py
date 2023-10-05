@@ -25,6 +25,7 @@ class AsyncDownload(Thread):
         self.master = master
         self.queue = q
         self.update_url(url)
+        self.codes = self.get_penalty_codes("Syykoodit.json")
 
     def run(self):
         while True:
@@ -82,6 +83,12 @@ class AsyncDownload(Thread):
         scorer_text = " ".join([scoring_team, home_team_score, "-", away_team_score, scorer_number, scorer_firstName, scorer_lastName])
         return scorer_text
 
+    def get_penalty_codes(self, file_name="Syykoodit.json"):
+        with open(file_name) as json_file:
+            codes = json.load(json_file)
+        return codes
+
+    
     def parse_penalty(self, penalty):
         penalty_drawing_team = str(penalty['team']['name'])
         fault_name = str(penalty['faultName'])
