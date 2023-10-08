@@ -17,7 +17,7 @@ import requests
 import json
 import queue
 
-INFO_TEXT_DURATION = 2
+INFO_TEXT_DURATION = 10
 
 class AsyncDownload(Thread):
     def __init__(self, master, url, q):
@@ -51,7 +51,7 @@ class AsyncDownload(Thread):
     def update_url(self, new_url):
         self.events = []
         self.url            = new_url
-        self.first_request  = False
+        self.first_request  = True
         self.event_idx      = 0
         
 
