@@ -29,6 +29,7 @@ class AsyncDownload(Thread):
 
     def run(self):
         while True:
+            time.sleep(5)
             try:
                 response = requests.get(self.url)
                 if response.status_code == requests.codes.ok:
@@ -46,7 +47,7 @@ class AsyncDownload(Thread):
                         self.event_idx = len_filtered_events
             except Exception as e:
                 print("request exeption " + str(e))
-            time.sleep(5)
+
 
     def update_url(self, new_url):
         self.events = []
@@ -55,8 +56,7 @@ class AsyncDownload(Thread):
         self.event_idx      = 0
         
 
-    def filter_events(self, events_json):
-        
+    def filter_events(self, events_json):   
         e = events_json['match']['events']
         filtered = [event for event in e if event['code'] == 'maali' or event['code'] == '2min']
         return filtered
@@ -65,21 +65,25 @@ class AsyncDownload(Thread):
         if event['code'] == 'maali':     # Maalit valitaan aina
             return self.__parse_scorer(event)
         elif event['code'] == '2min':
-            return self.parse_penalty(event)
+            return self.__parse_penalty(event)
         # elif event['type'] == 'timeoutEvent':
         #     return self.parse_timeout(event)
         else:
             return '???'
 
     def __parse_scorer(self, goal):
-        score     = str(goal['code_fi'])
-        scoring_team        = str("")
+        score     = str(goal['description'])
+        if goal['team'] == 'A':
+            scoring_team = self.events['match']['team_A_name']
+        elif goal['team'] == 'B':
+            scoring_team = self.events['match']['team_B_name']
+        else:
+            scoring_team        = str("")
 
         scorer_number       = "#" + str(goal['shirt_number'])
-        scorer_firstName    = str(goal['player_name'])
-        scorer_lastName     = str("")
+        scorer_Name    = str(goal['player_name'])
 
-        scorer_text = " ".join([scoring_team, score, scorer_number, scorer_firstName, scorer_lastName])
+        scorer_text = " ".join(["Maali", scoring_team, scorer_number, scorer_Name, score])
         return scorer_text
 
     def get_penalty_codes(self, file_name="Syykoodit.json"):
@@ -88,10 +92,18 @@ class AsyncDownload(Thread):
         return codes
 
     
-    def parse_penalty(self, penalty):
-        penalty_drawing_team = ""
+    def __parse_penalty(self, penalty):
+        if penalty['team'] == 'A':
+            penalty_drawing_team = self.events['match']['team_A_name']
+        elif penalty['team'] == 'B':
+            penalty_drawing_team = self.events['match']['team_B_name']
+        else:
+            penalty_drawing_team        = str("")
+        penalty_drawing_number       = "#" + str(penalty['shirt_number'])
+        penalty_drawing_player = penalty['player_name']
+
         fault_name = str(self.codes[penalty['description']])
-        penalty_text = " ".join(["Jäähy", penalty_drawing_team, fault_name])
+        penalty_text = " ".join(["Jäähy", penalty_drawing_team, penalty_drawing_number, penalty_drawing_player, fault_name])
         return penalty_text
 
     def parse_timeout(self, timeout):
