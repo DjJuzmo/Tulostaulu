@@ -56,7 +56,8 @@ class AsyncDownload(Thread):
         self.event_idx      = 0
         
 
-    def filter_events(self, events_json):   
+    def filter_events(self, events_json):
+        t = events_json['match']['period_sec']
         e = events_json['match']['events']
         filtered = [event for event in e if event['code'] == 'maali' or event['code'] == '2min']
         return filtered
@@ -251,7 +252,7 @@ class EraNaytto(tk.Frame):
 class Ohjaus(tk.Frame):
     def __init__(self, master, *args, **kwargs):
         tk.Frame.__init__(self, master, *args, **kwargs)
-
+        self.master = master
         self.replayTiedosto = Path(filedialog.askopenfilename())
         print(self.replayTiedosto)
         self.tallennusPolku = Path(filedialog.askdirectory())
@@ -260,16 +261,16 @@ class Ohjaus(tk.Frame):
         self.btn_tallenna = tk.Button(self, text='Tallenna', command=self.tallennaTiedosto)
         self.lbl_aika = tk.Label(self, text="")
 
-        # self.btn_tallenna.pack()
+        self.btn_tallenna.pack()
         self.lbl_aika.pack()
 
         self.update_clock()
 
     def tallennaTiedosto(self):
         uusintaTiedosto = time.strftime("%H%M%S_" + 
-        self.frm_era.eraValinta.get().replace('.', '').replace('ä', 'a') + '_' +
-        self.frm_koti.numero.get() + '-' +
-        self.frm_vieras.numero.get() +
+        self.master.frm_era.eraValinta.get().replace('.', '').replace('ä', 'a') + '_' +
+        self.master.frm_koti.numero.get() + '-' +
+        self.master.frm_vieras.numero.get() +
         '.mkv'
         )
         print(uusintaTiedosto)
@@ -337,6 +338,11 @@ class LiveNaytto(tk.Frame):
         self.master.update_master_title(config['api_key'], config['match_id'])
         self.writer_thread.should_clear_queue = True
 
+class KelloNaytto(tk.Frame):
+    def __init__(self, master, *args, **kwargs):
+        tk.Frame.__init__(self, master, *args, **kwargs)
+        self.master = master
+
 
 class MyApp(tk.Frame):
     def __init__(self, master, *args, **kwargs):
@@ -353,14 +359,14 @@ class MyApp(tk.Frame):
         # Set master title
         self.update_master_title(api_key, ottelu_id)
 
-        frm_koti = NumeroNaytto(self, rajapinta_hakemisto + "Koti", width=50, height=130,bd=2, relief='groove')
-        frm_koti.pack_propagate(False)
+        self.frm_koti = NumeroNaytto(self, rajapinta_hakemisto + "Koti", width=50, height=130,bd=2, relief='groove')
+        self.frm_koti.pack_propagate(False)
 
-        frm_era = EraNaytto(self, rajapinta_hakemisto + "Era", width=60, height=130,bd=2, relief='groove')
-        frm_era.pack_propagate(False)
+        self.frm_era = EraNaytto(self, rajapinta_hakemisto + "Era", width=60, height=130,bd=2, relief='groove')
+        self.frm_era.pack_propagate(False)
 
-        frm_vieras = NumeroNaytto(self, rajapinta_hakemisto + "Vieras", width=50, height=130,bd=2, relief='groove')
-        frm_vieras.pack_propagate(False)
+        self.frm_vieras = NumeroNaytto(self, rajapinta_hakemisto + "Vieras", width=50, height=130,bd=2, relief='groove')
+        self.frm_vieras.pack_propagate(False)
 
         frm_kotijoukkue = JoukkueNaytto(self, "Joukkueet.txt", rajapinta_hakemisto + "Kotijoukkue", width=80, height=130,bd=2, relief='groove')
         frm_kotijoukkue.pack_propagate(False)
@@ -373,9 +379,9 @@ class MyApp(tk.Frame):
 
         frm_ohjaus.grid(row=0, column=0)
         frm_kotijoukkue.grid(row=0, column=1)
-        frm_koti.grid(row=0, column=2)
-        frm_era.grid(row=0, column=3)
-        frm_vieras.grid(row=0, column=4)
+        self.frm_koti.grid(row=0, column=2)
+        self.frm_era.grid(row=0, column=3)
+        self.frm_vieras.grid(row=0, column=4)
         frm_vierasjoukkue.grid(row=0, column=5)
         frm_live.grid(row=1, sticky='ew', column=0, columnspan=6)
 
