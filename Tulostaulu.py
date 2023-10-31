@@ -57,7 +57,7 @@ class AsyncDownload(Thread):
         
 
     def filter_events(self, events_json):
-        t = events_json['match']['period_sec']
+        # t = events_json['match']['live_time']
         e = events_json['match']['events']
         filtered = [event for event in e if event['code'] == 'maali' or event['code'] == '2min']
         return filtered
@@ -146,6 +146,16 @@ class InfoWriter(Thread):
     def clear_info(self):
         with open('Infoteksti.txt', encoding='utf-8', mode='w') as file:
             file.write("")
+
+
+class HaeKello(Thread):
+    def __init__(self, master, q):
+        super().__init__()
+        self.master = master
+        self.queue = q
+
+    def run(self):
+        pass
 
 
 class NumeroNaytto(tk.Frame):
@@ -253,6 +263,10 @@ class Ohjaus(tk.Frame):
     def __init__(self, master, *args, **kwargs):
         tk.Frame.__init__(self, master, *args, **kwargs)
         self.master = master
+        # ========================== Pelikello =================================
+        self.peli_kello_queue = queue.Queue(1)
+        self.kello_thread = HaeKello(self, self.peli_kello_queue)
+        # ======================================================================
         self.replayTiedosto = Path(filedialog.askopenfilename())
         print(self.replayTiedosto)
         self.tallennusPolku = Path(filedialog.askdirectory())
