@@ -45,3 +45,6 @@ SB Naantali
 SBS Wirmo/TPS
 Pelicans
 LASB
+PJK P15
+PJK P17
+ASB/PÖU

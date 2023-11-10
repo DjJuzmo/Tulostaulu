@@ -9,7 +9,8 @@
     "protocoll":    "https://",
     "domain":       "salibandy.api.torneopal.com",
     "path":         "/taso/rest/getMatch",
+    "path_score":   "/taso/rest/getScore",
 
     "api_key":      "rndds38fjf",
-    "match_id":     "730809"
+    "match_id":     "734773"
 }

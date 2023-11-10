@@ -149,13 +149,26 @@ class InfoWriter(Thread):
 
 
 class HaeKello(Thread):
-    def __init__(self, master, q):
+    def __init__(self, master, url, q, i_face):
         super().__init__()
         self.master = master
+        self.url = url
         self.queue = q
 
     def run(self):
-        pass
+        while True:
+            time.sleep(1)
+            try:
+                response = requests.get(self.url)
+                if response.status_code == requests.codes.ok:
+                    self.score = response.json()
+                    self.write_clock(self.score['score']['live_time_mmss'])
+            except Exception as e:
+                print(e)
+
+    def write_clock(self, clk):
+        with open('Kello.txt', encoding='utf-8', mode='w') as file:
+            file.write(str(clk))
 
 
 class NumeroNaytto(tk.Frame):
@@ -264,8 +277,8 @@ class Ohjaus(tk.Frame):
         tk.Frame.__init__(self, master, *args, **kwargs)
         self.master = master
         # ========================== Pelikello =================================
-        self.peli_kello_queue = queue.Queue(1)
-        self.kello_thread = HaeKello(self, self.peli_kello_queue)
+        # self.peli_kello_queue = queue.Queue(1)
+        # self.kello_thread = HaeKello(self, self.peli_kello_queue)
         # ======================================================================
         self.replayTiedosto = Path(filedialog.askopenfilename())
         print(self.replayTiedosto)
@@ -302,12 +315,16 @@ class LiveNaytto(tk.Frame):
         self.master = master
         self.get_settings('Asetukset.json')
         self.info_queue = queue.Queue(10)
+        self.score_queue = queue.Queue(1)
 
-        self.writer_thread = InfoWriter(self, self.info_queue, self.rajapinta_hakemisto)
+        self.writer_thread =  InfoWriter(self, self.info_queue, self.rajapinta_hakemisto)
         self.writer_thread.daemon = TRUE
 
         self.event_thread = AsyncDownload(self, self.endpoint, self.info_queue)
         self.event_thread.daemon = TRUE
+
+        self.score_thread = HaeKello(self, self.score_endpoint, self.score_queue, self.rajapinta_hakemisto)
+        self.score_thread.daemon = TRUE
 
         self.frm_label              = tk.LabelFrame(self)
         self.frm_buttons            = tk.Frame(self)
@@ -326,7 +343,8 @@ class LiveNaytto(tk.Frame):
         self.frm_buttons.pack(side='left')
 
         self.writer_thread.start()
-        self.event_thread.start()    
+        self.event_thread.start()
+        self.score_thread.start()    
 
     def get_settings(self, file_name):
         with open(file_name) as json_file:
@@ -336,12 +354,14 @@ class LiveNaytto(tk.Frame):
         protocoll =     setup['protocoll']
         domain =        setup['domain']
         path =          setup['path']
+        path_score =    setup['path_score']
 
         # Query Parameters
         api_key =   setup['api_key']
         match_id =  setup['match_id']
 
         self.endpoint = protocoll + domain + path + "&api_key=" + api_key + "&match_id=" + match_id
+        self.score_endpoint = protocoll + domain + path_score + "&api_key=" + api_key + "&match_id=" + match_id
         self.rajapinta_hakemisto = setup['Obs_interface_path'] + "\\"
         return setup
         
