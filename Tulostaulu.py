@@ -170,6 +170,9 @@ class HaeKello(Thread):
         with open('Kello.txt', encoding='utf-8', mode='w') as file:
             file.write(str(clk))
 
+    def update_url(self, new_url):
+        self.url            = new_url
+        
 
 class NumeroNaytto(tk.Frame):
     def __init__(self, master, otsikko, *args, **kwargs):
