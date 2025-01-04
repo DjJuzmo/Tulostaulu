@@ -58,3 +58,5 @@ Nibacos
 SB Vaasa
 Tiikerit
 SCH
+Panthers
+Josba

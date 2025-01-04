@@ -93,7 +93,7 @@ class AsyncDownload(Thread):
         return codes
 
     
-    def __parse_penalty(self, penalty):
+    def __parse_penalty(self, penalty: dict) -> str:
         if penalty['team'] == 'A':
             penalty_drawing_team = self.events['match']['team_A_name']
         elif penalty['team'] == 'B':
@@ -317,17 +317,18 @@ class LiveNaytto(tk.Frame):
         tk.Frame.__init__(self, master, *args, **kwargs)
         self.master = master
         self.get_settings('Asetukset.json')
+
         self.info_queue = queue.Queue(10)
         self.score_queue = queue.Queue(1)
 
         self.writer_thread =  InfoWriter(self, self.info_queue, self.rajapinta_hakemisto)
-        self.writer_thread.daemon = TRUE
+        self.writer_thread.daemon = TRUE # Tämän pitää olla True, jotta thread päättyy kun pääohjelma päättyy.
 
         self.event_thread = AsyncDownload(self, self.endpoint, self.info_queue)
-        self.event_thread.daemon = TRUE
+        self.event_thread.daemon = TRUE # Tämän pitää olla True, jotta thread päättyy kun pääohjelma päättyy.
 
         self.score_thread = HaeKello(self, self.score_endpoint, self.score_queue, self.rajapinta_hakemisto)
-        self.score_thread.daemon = TRUE
+        self.score_thread.daemon = TRUE # Tämän pitää olla True, jotta thread päättyy kun pääohjelma päättyy.
 
         self.frm_label              = tk.LabelFrame(self)
         self.frm_buttons            = tk.Frame(self)
